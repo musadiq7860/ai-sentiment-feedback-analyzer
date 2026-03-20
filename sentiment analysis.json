@@ -1,0 +1,288 @@
+{
+  "name": "sentiment analysis",
+  "nodes": [
+    {
+      "parameters": {
+        "formTitle": "Please give Us your feedback",
+        "formDescription": "How satisfied are you?",
+        "formFields": {
+          "values": [
+            {
+              "fieldLabel": "Name",
+              "placeholder": "Your Name",
+              "requiredField": true
+            },
+            {
+              "fieldLabel": "Your Review",
+              "fieldType": "textarea",
+              "placeholder": "How satisfied are you?",
+              "requiredField": true
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.formTrigger",
+      "typeVersion": 2.5,
+      "position": [
+        -704,
+        -256
+      ],
+      "id": "dfe4a37f-ffdc-4485-a033-b367c7287814",
+      "name": "On form submission",
+      "webhookId": "35acb907-daeb-4b8f-a9b1-bbdbf69c13ed"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "={{ $json['Your Review'] }}",
+        "messages": {
+          "messageValues": [
+            {
+              "message": "=You are an expert in sentiment analysis.\nYou conduct evaluations and determine which of the three options applies:\n\nPositive\nNegative\nNeutral\nYou respond with only one word."
+            }
+          ]
+        },
+        "batching": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.chainLlm",
+      "typeVersion": 1.9,
+      "position": [
+        -336,
+        -80
+      ],
+      "id": "aa62da26-8c3f-44c1-8644-6717082069b5",
+      "name": "Basic LLM Chain",
+      "retryOnFail": true,
+      "waitBetweenTries": 5000
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatGoogleGemini",
+      "typeVersion": 1,
+      "position": [
+        -384,
+        128
+      ],
+      "id": "e595a0f5-04ee-42fc-a580-ddf33784e891",
+      "name": "Google Gemini Chat Model",
+      "retryOnFail": true,
+      "waitBetweenTries": 5000,
+      "maxTries": 5,
+      "credentials": {
+        "googlePalmApi": {
+          "id": "95VlnOEgHUPNxJ6t",
+          "name": "Google Gemini(PaLM) Api account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "mode": "combine",
+        "combineBy": "combineByPosition",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.2,
+      "position": [
+        -16,
+        -240
+      ],
+      "id": "4d5a45b7-9521-47f7-9937-c70a8432a7d3",
+      "name": "Merge"
+    },
+    {
+      "parameters": {
+        "operation": "append",
+        "documentId": {
+          "__rl": true,
+          "value": "1a1qfpP8ENwRZfZYTQKCEuaMkRkIo4U3-tETM78KbmLQ",
+          "mode": "list",
+          "cachedResultName": "Reviews Feedback",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1a1qfpP8ENwRZfZYTQKCEuaMkRkIo4U3-tETM78KbmLQ/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "gid=0",
+          "mode": "list",
+          "cachedResultName": "Sheet1",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1a1qfpP8ENwRZfZYTQKCEuaMkRkIo4U3-tETM78KbmLQ/edit#gid=0"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "Name": "={{ $json.Name }}",
+            "Review": "={{ $json.text }}"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "Name",
+              "displayName": "Name",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "Review",
+              "displayName": "Review",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        304,
+        -240
+      ],
+      "id": "0e6e9475-81bb-49ec-8801-a75f30e9a825",
+      "name": "Append row in sheet",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "JqLwogIOO6K9wAWX",
+          "name": "Google Sheets account 2"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "sendTo": "chotapola302@gmail.com",
+        "subject": "Reviews",
+        "message": "=Name: {{ $json.Name }}\n<br>\nReview:\n{{ $json['Your Review'] }}\n<br>\nSentiment: <strong>{{ $json.text }}\n</strong>\n\n",
+        "options": {
+          "appendAttribution": false
+        }
+      },
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.2,
+      "position": [
+        288,
+        -64
+      ],
+      "id": "2a2b9904-81d2-4b14-bd9c-013fbb1b18f2",
+      "name": "Send a message",
+      "webhookId": "a1dd539e-9c8d-435f-9be8-4f454cf69dfa",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "TcwZOcrDYeaxSDmo",
+          "name": "Gmail account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "amount": 15
+      },
+      "type": "n8n-nodes-base.wait",
+      "typeVersion": 1.1,
+      "position": [
+        -496,
+        -256
+      ],
+      "id": "b3e0c014-4dd2-4474-9a59-b44a5b05f9f9",
+      "name": "Wait",
+      "webhookId": "28d812fb-2cd9-46b8-9deb-ef88ce2d1cbe"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "On form submission": {
+      "main": [
+        [
+          {
+            "node": "Merge",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Wait",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Google Gemini Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Basic LLM Chain",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Basic LLM Chain": {
+      "main": [
+        [
+          {
+            "node": "Merge",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "Merge": {
+      "main": [
+        [
+          {
+            "node": "Append row in sheet",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Send a message",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Append row in sheet": {
+      "main": [
+        []
+      ]
+    },
+    "Wait": {
+      "main": [
+        [
+          {
+            "node": "Basic LLM Chain",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate",
+    "availableInMCP": false
+  },
+  "versionId": "888e91c1-11df-4898-bdab-a50141a16f1f",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "1dc9d47213a8401d66a9b05c3f4ac5d788be345eaa3fd98bd480d0994a87e59b"
+  },
+  "id": "9BJdFxZs9yM9PjYD",
+  "tags": []
+}
