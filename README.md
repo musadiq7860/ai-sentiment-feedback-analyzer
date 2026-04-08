@@ -1,4 +1,4 @@
-# 💬 AI Sentiment Feedback Analyzer
+#  AI Sentiment Feedback Analyzer
 
 An automated feedback analysis pipeline that collects customer reviews via a form, classifies sentiment using Google Gemini AI, logs results to Google Sheets, and sends instant email alerts.
 
